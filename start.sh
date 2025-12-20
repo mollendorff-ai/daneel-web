@@ -11,26 +11,27 @@ cd "$SCRIPT_DIR"
 export REDIS_URL="${REDIS_URL:-redis://localhost:6379}"
 export QDRANT_URL="${QDRANT_URL:-http://localhost:6334}"
 export PORT="${PORT:-3000}"
-export FRONTEND_DIR="${FRONTEND_DIR:-../daneel-web-ui/dist}"
+export FRONTEND_DIR="${FRONTEND_DIR:-./frontend/dist}"
 export RUST_LOG="${RUST_LOG:-daneel_web=info,tower_http=debug}"
 
 echo "=== DANEEL Web Dashboard ==="
 echo "Redis:    $REDIS_URL"
 echo "Qdrant:   $QDRANT_URL"
 echo "Port:     $PORT"
-echo "Frontend: $FRONTEND_DIR"
 echo ""
 
-# Build if needed
-if [ ! -f target/release/daneel-web ]; then
-    echo "Building release binary..."
-    cargo build --release
+# Build frontend if needed
+if [ ! -f "$FRONTEND_DIR/index.html" ]; then
+    echo "Building frontend (Leptos WASM)..."
+    cd frontend
+    trunk build --release
+    cd ..
 fi
 
-# Check frontend exists
-if [ ! -f "$FRONTEND_DIR/index.html" ]; then
-    echo "WARNING: Frontend not found at $FRONTEND_DIR"
-    echo "Run: cd ../daneel-web-ui && trunk build --release"
+# Build backend if needed
+if [ ! -f target/release/daneel-web ]; then
+    echo "Building backend..."
+    cargo build --release
 fi
 
 # Start server
