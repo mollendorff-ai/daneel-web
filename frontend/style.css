@@ -1,0 +1,239 @@
+:root {
+    --bg: #1a1a2e;
+    --bg-card: rgba(255,255,255,0.05);
+    --fg: #eaeaea;
+    --accent: #4ecdc4;
+    --warning: #ffd93d;
+    --danger: #ff6b6b;
+    --success: #6bcb77;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    background: var(--bg);
+    color: var(--fg);
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: var(--accent);
+    font-size: 1.8rem;
+    margin-bottom: 5px;
+}
+
+.subtitle {
+    opacity: 0.7;
+    font-size: 0.9rem;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.card {
+    background: var(--bg-card);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 15px;
+}
+
+.card h2 {
+    color: var(--accent);
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.metric {
+    font-size: 2.5rem;
+    font-weight: bold;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.metric-sm {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.label {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.row {
+    display: flex;
+    justify-content: space-between;
+    margin: 8px 0;
+    font-size: 0.85rem;
+}
+
+/* Gauge */
+.gauge-container {
+    margin: 10px 0;
+}
+
+.gauge {
+    height: 24px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.gauge-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), #45b7aa);
+    transition: width 0.3s ease;
+    border-radius: 12px;
+}
+
+/* Emotional Grid */
+.emotional-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    text-align: center;
+}
+
+.emotional-value {
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin-bottom: 4px;
+}
+
+/* Memory Grid */
+.memory-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    text-align: center;
+}
+
+/* Actor Grid */
+.actor-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+}
+
+.actor {
+    padding: 10px;
+    border-radius: 6px;
+    background: rgba(107, 203, 119, 0.15);
+    font-size: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.actor.dead {
+    background: rgba(255, 107, 107, 0.15);
+}
+
+.actor-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--success);
+    flex-shrink: 0;
+}
+
+.actor.dead .actor-dot {
+    background: var(--danger);
+}
+
+/* Thought Stream */
+.thought-card {
+    margin-top: 15px;
+}
+
+.thought-stream {
+    max-height: 350px;
+    overflow-y: auto;
+}
+
+.thought {
+    padding: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.1);
+    font-size: 0.85rem;
+    display: flex;
+    gap: 12px;
+}
+
+.thought:last-child {
+    border-bottom: none;
+}
+
+.thought:hover {
+    background: rgba(255,255,255,0.03);
+}
+
+.salience {
+    color: var(--warning);
+    font-weight: bold;
+    min-width: 45px;
+    font-size: 0.8rem;
+}
+
+.thought-content {
+    flex: 1;
+    word-break: break-word;
+    opacity: 0.9;
+}
+
+/* Status */
+.status {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    background: var(--success);
+    color: #000;
+}
+
+.status.error {
+    background: var(--danger);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255,255,255,0.2);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255,255,255,0.3);
+}

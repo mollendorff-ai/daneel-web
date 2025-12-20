@@ -264,9 +264,9 @@ async fn main() {
 
     tokio::spawn(metrics_updater(Arc::clone(&state)));
 
-    // Leptos WASM frontend from sibling project
+    // Leptos WASM frontend
     let frontend_dir = std::env::var("FRONTEND_DIR")
-        .unwrap_or_else(|_| "../daneel-web-ui/dist".into());
+        .unwrap_or_else(|_| "./frontend/dist".into());
 
     let app = Router::new()
         .route("/health", get(health))
