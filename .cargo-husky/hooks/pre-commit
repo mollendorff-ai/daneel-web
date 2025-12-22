@@ -1,0 +1,8 @@
+#\!/bin/bash
+# Pre-commit: format and lint
+echo "Running pre-commit checks..."
+echo "Checking formatting..."
+cargo fmt --check || exit 1
+echo "Running clippy..."
+cargo clippy --all-targets -- -D warnings || exit 1
+echo "All checks passed\!"
