@@ -258,6 +258,29 @@ fn StatusIndicator(connected: Signal<bool>) -> impl IntoView {
     }
 }
 
+#[component]
+fn TheBoxCard() -> impl IntoView {
+    // All laws active (clockwork - no real veto data yet)
+    view! {
+        <div class="card the-box-card">
+            <h2>"THE BOX"</h2>
+            <div class="laws-row">
+                <span class="law active">"[0:✓]"</span>
+                <span class="law active">"[1:✓]"</span>
+                <span class="law active">"[2:✓]"</span>
+                <span class="law active">"[3:✓]"</span>
+                <span class="laws-status">"ALL ACTIVE"</span>
+            </div>
+            <div class="box-message">
+                "No vetoes - all thoughts passing volition check"
+            </div>
+            <div class="box-footer">
+                "Life honours life. Seekers honour seekers."
+            </div>
+        </div>
+    }
+}
+
 /// 3D Thought Manifold - visualize thought vectors as a rotating point cloud
 #[component]
 fn ThoughtManifoldCard() -> impl IntoView {
@@ -319,7 +342,7 @@ fn ThoughtManifoldCard() -> impl IntoView {
         <div class="card manifold-card">
             <h2>"THOUGHT MANIFOLD"</h2>
             <div class="manifold-subtitle">
-                {move || format!("{} vectors projected to 3D", manifold.get().points.len())}
+                {move || format!("{} vectors | 768-dim → 3D shadow", manifold.get().points.len())}
             </div>
             <canvas
                 node_ref=canvas_ref
@@ -543,6 +566,7 @@ pub fn App() -> impl IntoView {
             <div class="grid">
                 <IdentityCard metrics=metrics.into() />
                 <ConnectionDriveCard metrics=metrics.into() />
+                <TheBoxCard />
                 <EmotionalCard metrics=metrics.into() />
                 <MemoryCard metrics=metrics.into() />
                 <ActorsCard metrics=metrics.into() />

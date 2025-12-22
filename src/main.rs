@@ -332,14 +332,17 @@ async fn fetch_metrics(
     let emotional_intensity = latest_valence.abs() * latest_arousal;
 
     // Connection drive: random walk like TUI clockwork
+    // Bias toward 0.85 center with mean-reversion
     let mut connection_drive = *state.connection_drive.read().await;
-    // Simple random walk using timestamp as seed
     let seed = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_nanos() as u64;
-    let delta = ((seed % 100) as f32 / 100.0 - 0.5) * 0.04; // -0.02 to +0.02
-    connection_drive = (connection_drive + delta).clamp(0.5, 1.0);
+    // Random component: -0.02 to +0.02
+    let random_delta = ((seed % 100) as f32 / 100.0 - 0.5) * 0.04;
+    // Mean reversion toward 0.85 (pull back if too far from center)
+    let reversion = (0.85 - connection_drive) * 0.1;
+    connection_drive = (connection_drive + random_delta + reversion).clamp(0.5, 1.0);
     *state.connection_drive.write().await = connection_drive;
 
     // Qdrant counts
