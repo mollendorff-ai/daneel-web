@@ -29,8 +29,15 @@ chrono = { version = "0.4", features = ["serde", "wasmbind"] }
 # WASM
 wasm-bindgen = "0.2"
 wasm-bindgen-futures = "0.4"
-web-sys = { version = "0.3", features = ["console", "Window", "Location"] }
+web-sys = { version = "0.3", features = [
+    "console", "Window", "Location",
+    "HtmlCanvasElement", "CanvasRenderingContext2d",
+    "MouseEvent", "Element", "DomRect"
+] }
 console_error_panic_hook = "0.1"
+
+# HTTP for fetching vectors
+reqwasm = "0.5"
 
 [profile.release]
 lto = true

@@ -41,6 +41,9 @@ tokio-stream = "0.1"
 # Config
 dotenvy = "0.15"
 
+# Dimensionality reduction (384-dim -> 3D via random projection)
+ndarray = "0.16"
+
 [dev-dependencies]
 cargo-husky = { version = "1", default-features = false, features = ["user-hooks"] }
 tokio-test = "0.4"
