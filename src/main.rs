@@ -3,6 +3,8 @@
 //! Read-only, real-time nursery window into Timmy's cognitive processes.
 //! ALL ENDPOINTS ARE READ-ONLY. Asimov guardrails enforced.
 
+mod vectors;
+
 use axum::{
     extract::{
         ws::{Message, WebSocket, WebSocketUpgrade},
@@ -87,6 +89,7 @@ pub struct AppState {
     pub qdrant_url: String,
     pub metrics: RwLock<DashboardMetrics>,
     pub start_time: DateTime<Utc>,
+    pub projection: vectors::SharedProjection,
 }
 
 impl AppState {
@@ -96,6 +99,7 @@ impl AppState {
             qdrant_url,
             metrics: RwLock::new(Self::default_metrics()),
             start_time: Utc::now(),
+            projection: vectors::create_projection(),
         }
     }
 
@@ -159,6 +163,28 @@ async fn health() -> impl IntoResponse {
 
 async fn metrics(State(state): State<Arc<AppState>>) -> impl IntoResponse {
     Json(state.metrics.read().await.clone())
+}
+
+async fn manifold_vectors(State(state): State<Arc<AppState>>) -> impl IntoResponse {
+    let projection = state.projection.read().await;
+
+    // Fetch and project vectors
+    let points = vectors::fetch_manifold_points(&state.qdrant_url, &projection, 500)
+        .await
+        .unwrap_or_default();
+
+    // Get Law Crystal anchor points
+    let crystals = vectors::get_law_crystals(&projection);
+
+    Json(vectors::ManifoldResponse {
+        points,
+        crystals,
+        projection_type: if projection.is_trained {
+            "pca".to_string()
+        } else {
+            "random".to_string()
+        },
+    })
 }
 
 async fn ws_handler(ws: WebSocketUpgrade, State(state): State<Arc<AppState>>) -> impl IntoResponse {
@@ -439,6 +465,7 @@ async fn main() {
     let app = Router::new()
         .route("/health", get(health))
         .route("/metrics", get(metrics))
+        .route("/vectors", get(manifold_vectors))
         .route("/ws", get(ws_handler))
         .fallback_service(ServeDir::new(&frontend_dir))
         .layer(CorsLayer::permissive())
