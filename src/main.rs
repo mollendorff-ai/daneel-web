@@ -334,14 +334,16 @@ async fn fetch_metrics(
     // Connection drive: random walk like TUI clockwork
     // Bias toward 0.85 center with mean-reversion
     let mut connection_drive = *state.connection_drive.read().await;
-    let seed = std::time::SystemTime::now()
+    let nanos = std::time::SystemTime::now()
         .duration_since(std::time::UNIX_EPOCH)
         .unwrap()
         .as_nanos() as u64;
+    // Mix bits for better randomness at 150ms update rate
+    let seed = nanos.wrapping_mul(1103515245).wrapping_add(12345);
     // Random component: -0.02 to +0.02
-    let random_delta = ((seed % 100) as f32 / 100.0 - 0.5) * 0.04;
+    let random_delta = ((seed % 1000) as f32 / 1000.0 - 0.5) * 0.04;
     // Mean reversion toward 0.85 (pull back if too far from center)
-    let reversion = (0.85 - connection_drive) * 0.1;
+    let reversion = (0.85 - connection_drive) * 0.05;
     connection_drive = (connection_drive + random_delta + reversion).clamp(0.5, 1.0);
     *state.connection_drive.write().await = connection_drive;
 
