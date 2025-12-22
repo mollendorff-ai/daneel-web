@@ -90,6 +90,7 @@ pub struct AppState {
     pub metrics: RwLock<DashboardMetrics>,
     pub start_time: DateTime<Utc>,
     pub projection: vectors::SharedProjection,
+    pub connection_drive: RwLock<f32>, // Simulated clockwork, randomly walks
 }
 
 impl AppState {
@@ -100,6 +101,7 @@ impl AppState {
             metrics: RwLock::new(Self::default_metrics()),
             start_time: Utc::now(),
             projection: vectors::create_projection(),
+            connection_drive: RwLock::new(0.85),
         }
     }
 
@@ -329,8 +331,16 @@ async fn fetch_metrics(
     // Calculate emotional intensity: |valence| * arousal
     let emotional_intensity = latest_valence.abs() * latest_arousal;
 
-    // Connection drive from identity or default
-    let connection_drive = 0.85; // TODO: Read from actual state if persisted
+    // Connection drive: random walk like TUI clockwork
+    let mut connection_drive = *state.connection_drive.read().await;
+    // Simple random walk using timestamp as seed
+    let seed = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .unwrap()
+        .as_nanos() as u64;
+    let delta = ((seed % 100) as f32 / 100.0 - 0.5) * 0.04; // -0.02 to +0.02
+    connection_drive = (connection_drive + delta).clamp(0.5, 1.0);
+    *state.connection_drive.write().await = connection_drive;
 
     // Qdrant counts
     let conscious = get_qdrant_count(&state.qdrant_url, "memories")
