@@ -40,7 +40,7 @@ pub struct ManifoldResponse {
 
 /// Projection matrix cache (random or PCA-derived)
 pub struct ProjectionState {
-    /// 384 x 3 projection matrix
+    /// 768 x 3 projection matrix (Timmy uses 768-dim BERT embeddings)
     pub matrix: Array2<f32>,
     /// Whether matrix is trained (for PCA) or random
     pub is_trained: bool,
@@ -52,11 +52,11 @@ impl ProjectionState {
         use std::f32::consts::PI;
 
         // Random projection using Gaussian entries (normalized)
-        let mut matrix = Array2::<f32>::zeros((384, 3));
+        let mut matrix = Array2::<f32>::zeros((768, 3));
 
         // Use deterministic seed for reproducibility
         let mut seed: u64 = 42;
-        for i in 0..384 {
+        for i in 0..768 {
             for j in 0..3 {
                 // Simple LCG for reproducible random
                 seed = seed.wrapping_mul(1103515245).wrapping_add(12345);
@@ -72,10 +72,10 @@ impl ProjectionState {
 
         // Normalize columns for better spread
         for j in 0..3 {
-            let col_sum: f32 = (0..384).map(|i| matrix[[i, j]].powi(2)).sum();
+            let col_sum: f32 = (0..768).map(|i| matrix[[i, j]].powi(2)).sum();
             let norm = col_sum.sqrt();
             if norm > 0.0 {
-                for i in 0..384 {
+                for i in 0..768 {
                     matrix[[i, j]] /= norm;
                 }
             }
@@ -87,9 +87,9 @@ impl ProjectionState {
         }
     }
 
-    /// Project a 384-dim vector to 3D
+    /// Project a 768-dim vector to 3D
     pub fn project(&self, vec: &[f32]) -> (f32, f32, f32) {
-        if vec.len() != 384 {
+        if vec.len() != 768 {
             return (0.0, 0.0, 0.0);
         }
 
