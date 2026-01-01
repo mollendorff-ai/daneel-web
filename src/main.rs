@@ -5,6 +5,18 @@
 //!
 //! Observatory Mode: Full TUI-equivalent metrics via /extended_metrics
 //! Embed Endpoint: Kin can convert text to vectors for STIM-D injection
+//!
+//! # Metrics Architecture (ADR-054)
+//!
+//! Extended metrics (entropy, fractality, stream competition) are fetched from
+//! the daneel core API at `/extended_metrics`. This ensures single source of truth
+//! for cognitive diversity calculations.
+//!
+//! Basic dashboard metrics (identity, recent thoughts) still query Redis/Qdrant
+//! directly for responsiveness. These are display-only and don't involve calculation
+//! divergence.
+//!
+//! Future: Move all metrics to API for full single-source architecture.
 
 mod vectors;
 
