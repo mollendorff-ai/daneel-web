@@ -1,5 +1,7 @@
 # DANEEL Web Dashboard
 
+> 📌 **R&D Prototype** — Interpret claims as hypotheses, not proven facts.
+
 **The Observable Mind** - Real-time nursery window into Timmy's cognitive processes.
 
 ## Overview
