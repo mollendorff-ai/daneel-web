@@ -179,6 +179,18 @@
             </div>
 
             <div class="card">
+                <h2>Manifold Structure</h2>
+                <div class="metric" id="silhouette">--</div>
+                <div class="gauge-container">
+                    <div class="gauge">
+                        <div class="gauge-fill" id="silhouette-gauge" style="width: 0%"></div>
+                        <span class="gauge-label" id="silhouette-status">Waiting...</span>
+                    </div>
+                </div>
+                <div class="label">Silhouette score (> 0.3 = meaningful clusters)</div>
+            </div>
+
+            <div class="card">
                 <h2>Actors</h2>
                 <div class="actor-grid" id="actors">
                     <div class="actor"><span class="actor-dot"></span>MemoryActor</div>
@@ -235,44 +247,61 @@
         }
 
         function updateDashboard(data) {
+            // Use dashboard sub-object from ObservatoryMetrics
+            const d = data.dashboard || data;
+
             // Identity
-            document.getElementById('name').textContent = data.identity.name;
-            document.getElementById('uptime').textContent = formatDuration(data.identity.uptime_seconds);
-            document.getElementById('lifetime-thoughts').textContent = data.identity.lifetime_thoughts.toLocaleString();
-            document.getElementById('session-thoughts').textContent = data.identity.session_thoughts.toLocaleString();
-            document.getElementById('restarts').textContent = data.identity.restart_count;
+            document.getElementById('name').textContent = d.identity.name;
+            document.getElementById('uptime').textContent = formatDuration(d.identity.uptime_seconds);
+            document.getElementById('lifetime-thoughts').textContent = d.identity.lifetime_thoughts.toLocaleString();
+            document.getElementById('session-thoughts').textContent = d.identity.session_thoughts.toLocaleString();
+            document.getElementById('restarts').textContent = d.identity.restart_count;
 
             // Connection Drive
-            const connection = Math.round(data.emotional.connection_drive * 100);
+            const connection = Math.round(d.emotional.connection_drive * 100);
             document.getElementById('connection').textContent = connection + '%';
             document.getElementById('connection-gauge').style.width = connection + '%';
 
             // Emotional
-            document.getElementById('valence').textContent = data.emotional.valence.toFixed(2);
-            document.getElementById('arousal').textContent = data.emotional.arousal.toFixed(2);
-            document.getElementById('intensity').textContent = data.emotional.emotional_intensity.toFixed(2);
+            document.getElementById('valence').textContent = d.emotional.valence.toFixed(2);
+            document.getElementById('arousal').textContent = d.emotional.arousal.toFixed(2);
+            document.getElementById('intensity').textContent = d.emotional.emotional_intensity.toFixed(2);
 
             // Memory
-            document.getElementById('conscious').textContent = data.cognitive.conscious_memories.toLocaleString();
-            document.getElementById('unconscious').textContent = data.cognitive.unconscious_memories.toLocaleString();
-            document.getElementById('dreams').textContent = data.cognitive.lifetime_dreams.toLocaleString();
+            document.getElementById('conscious').textContent = d.cognitive.conscious_memories.toLocaleString();
+            document.getElementById('unconscious').textContent = d.cognitive.unconscious_memories.toLocaleString();
+            document.getElementById('dreams').textContent = d.cognitive.lifetime_dreams.toLocaleString();
 
             // Actors
             const actorsEl = document.getElementById('actors');
-            actorsEl.innerHTML = Object.values(data.actors).map(a =>
+            actorsEl.innerHTML = Object.values(d.actors).map(a =>
                 `<div class="actor ${a.alive ? '' : 'dead'}">
                     <span class="actor-dot"></span>${a.name}
                 </div>`
             ).join('');
 
             // Thoughts
-            if (data.recent_thoughts && data.recent_thoughts.length > 0) {
-                document.getElementById('thoughts-list').innerHTML = data.recent_thoughts.map(t =>
+            if (d.recent_thoughts && d.recent_thoughts.length > 0) {
+                document.getElementById('thoughts-list').innerHTML = d.recent_thoughts.map(t =>
                     `<div class="thought">
                         <span class="salience">${t.salience.toFixed(2)}</span>
                         <span class="thought-content">${escapeHtml(t.content_preview)}</span>
                     </div>`
                 ).join('');
+            }
+
+            // Clustering/Silhouette (from extended metrics)
+            if (data.extended && data.extended.clustering) {
+                const silhouette = data.extended.clustering.silhouette;
+                const hasStructure = data.extended.clustering.has_structure;
+                document.getElementById('silhouette').textContent = silhouette.toFixed(3);
+                // Scale 0-1 to 0-100% for gauge (silhouette is -1 to 1, but we focus on 0-1)
+                const gaugeWidth = Math.max(0, Math.min(100, (silhouette + 1) * 50));
+                document.getElementById('silhouette-gauge').style.width = gaugeWidth + '%';
+                document.getElementById('silhouette-gauge').style.background = hasStructure
+                    ? 'linear-gradient(90deg, var(--success), #45b7aa)'
+                    : 'linear-gradient(90deg, var(--warning), #ffc107)';
+                document.getElementById('silhouette-status').textContent = hasStructure ? 'Structured' : 'Sparse';
             }
         }
 
