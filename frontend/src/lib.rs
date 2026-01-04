@@ -94,6 +94,7 @@ pub struct ExtendedMetrics {
     pub memory_windows: MemoryWindowsMetrics,
     pub philosophy: PhilosophyMetrics,
     pub system: SystemMetrics,
+    pub clustering: ClusteringMetrics,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -157,6 +158,13 @@ pub struct SystemMetrics {
     pub thoughts_per_hour: f32,
     pub dream_cycles: u64,
     pub veto_count: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct ClusteringMetrics {
+    pub silhouette: f32,
+    pub updated_at: Option<String>,
+    pub has_structure: bool,
 }
 
 // Manifold visualization types
@@ -504,6 +512,37 @@ fn MemoryWindowsCard(extended: Signal<Option<ExtendedMetrics>>) -> impl IntoView
     }
 }
 
+/// Manifold Clustering - silhouette score (VCONN-7)
+#[component]
+fn ClusteringCard(extended: Signal<Option<ExtendedMetrics>>) -> impl IntoView {
+    let clustering = move || extended.get().map(|e| e.clustering).unwrap_or_default();
+    let silhouette = move || clustering().silhouette;
+    let has_structure = move || clustering().has_structure;
+    let gauge_width = move || {
+        // Scale -1..1 to 0..100%
+        let s = silhouette();
+        ((s + 1.0) * 50.0).clamp(0.0, 100.0) as u32
+    };
+
+    view! {
+        <div class="card clustering-card">
+            <h2>"MANIFOLD STRUCTURE"</h2>
+            <div class="clustering-score">{move || format!("{:.3}", silhouette())}</div>
+            <div class="clustering-gauge">
+                <div
+                    class="clustering-fill"
+                    class:structured=has_structure
+                    style:width=move || format!("{}%", gauge_width())
+                ></div>
+            </div>
+            <div class="clustering-status">
+                {move || if has_structure() { "Structured" } else { "Sparse" }}
+            </div>
+            <div class="clustering-label">"Silhouette score (> 0.3 = meaningful clusters)"</div>
+        </div>
+    }
+}
+
 /// Philosophy banner
 #[component]
 fn PhilosophyCard(extended: Signal<Option<ExtendedMetrics>>) -> impl IntoView {
@@ -829,6 +868,7 @@ pub fn App() -> impl IntoView {
                         <EntropyCard extended=extended.into() />
                         <FractalityCard extended=extended.into() />
                         <MemoryWindowsCard extended=extended.into() />
+                        <ClusteringCard extended=extended.into() />
                     </div>
                 </div>
             </div>

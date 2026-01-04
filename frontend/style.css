@@ -578,3 +578,54 @@ h1 {
     opacity: 1;
     box-shadow: 0 0 8px rgba(26, 188, 156, 0.3);
 }
+
+/* Clustering Card (VCONN-7) */
+.clustering-card h2 {
+    color: #3498db;
+}
+
+.clustering-score {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 10px;
+    color: #3498db;
+    text-align: center;
+}
+
+.clustering-gauge {
+    height: 20px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.clustering-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--warning), #e6c332);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.clustering-fill.structured {
+    background: linear-gradient(90deg, var(--success), #45b7aa);
+}
+
+.clustering-status {
+    font-size: 0.85rem;
+    font-weight: bold;
+    text-align: center;
+    margin: 8px 0;
+    color: var(--warning);
+}
+
+.clustering-fill.structured + .clustering-status,
+.clustering-card:has(.clustering-fill.structured) .clustering-status {
+    color: var(--success);
+}
+
+.clustering-label {
+    font-size: 0.7rem;
+    opacity: 0.6;
+    text-align: center;
+}
