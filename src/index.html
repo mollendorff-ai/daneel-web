@@ -253,8 +253,8 @@
             // Identity
             document.getElementById('name').textContent = d.identity.name;
             document.getElementById('uptime').textContent = formatDuration(d.identity.uptime_seconds);
-            document.getElementById('lifetime-thoughts').textContent = d.identity.lifetime_thoughts.toLocaleString();
-            document.getElementById('session-thoughts').textContent = d.identity.session_thoughts.toLocaleString();
+            document.getElementById('lifetime-thoughts').textContent = formatNumber(d.identity.lifetime_thoughts);
+            document.getElementById('session-thoughts').textContent = formatNumber(d.identity.session_thoughts);
             document.getElementById('restarts').textContent = d.identity.restart_count;
 
             // Connection Drive
@@ -268,9 +268,9 @@
             document.getElementById('intensity').textContent = d.emotional.emotional_intensity.toFixed(2);
 
             // Memory
-            document.getElementById('conscious').textContent = d.cognitive.conscious_memories.toLocaleString();
-            document.getElementById('unconscious').textContent = d.cognitive.unconscious_memories.toLocaleString();
-            document.getElementById('dreams').textContent = d.cognitive.lifetime_dreams.toLocaleString();
+            document.getElementById('conscious').textContent = formatNumber(d.cognitive.conscious_memories);
+            document.getElementById('unconscious').textContent = formatNumber(d.cognitive.unconscious_memories);
+            document.getElementById('dreams').textContent = formatNumber(d.cognitive.lifetime_dreams);
 
             // Actors
             const actorsEl = document.getElementById('actors');
@@ -312,6 +312,13 @@
             if (h > 0) return `${h}h ${m}m ${s}s`;
             if (m > 0) return `${m}m ${s}s`;
             return `${s}s`;
+        }
+
+        function formatNumber(n) {
+            if (n >= 1_000_000_000) return (n / 1_000_000_000).toFixed(1) + 'B';
+            if (n >= 1_000_000) return (n / 1_000_000).toFixed(1) + 'M';
+            if (n >= 1_000) return (n / 1_000).toFixed(1) + 'K';
+            return n.toString();
         }
 
         function escapeHtml(text) {
