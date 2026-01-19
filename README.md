@@ -89,8 +89,8 @@ RUST_LOG=debug ./start.sh
 
 ## Part of the DANEEL Family
 
-- [daneel](https://github.com/royalbit/daneel) - The cognitive architecture
-- [daneel-poster](https://github.com/royalbit/daneel-poster) - Social media automation
+- [daneel](https://github.com/mollendorff-ai/daneel) - The cognitive architecture
+- [daneel-poster](https://github.com/mollendorff-ai/daneel-poster) - Social media automation
 
 ## License
 
