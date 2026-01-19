@@ -3,7 +3,7 @@ name = "daneel-web-frontend"
 version = "0.1.0"
 edition = "2021"
 description = "Leptos WASM frontend for DANEEL Web Dashboard"
-authors = ["Louis C. Tavares <rex@royalbit.ca>"]
+authors = ["Louis C. Tavares <rex@mollendorff.ai>"]
 license = "AGPL-3.0-or-later"
 
 [lib]
