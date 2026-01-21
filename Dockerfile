@@ -1,12 +1,43 @@
 # DANEEL-WEB - Observation Dashboard
-# Runtime-only image (binary + frontend built externally)
+# Multi-stage build: compiles inside Docker for correct architecture
 #
-# Build first:
-#   make build                    # Backend
-#   cd frontend && trunk build --release  # Frontend WASM
-# Then: docker build -t timmy-daneel-web .
+# Usage: docker build -t daneel-web .
 
-FROM ubuntu:24.04
+# === Build Stage ===
+FROM debian:bookworm AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl \
+    build-essential \
+    pkg-config \
+    libssl-dev \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Rust via rustup (gets latest stable)
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable
+ENV PATH="/root/.cargo/bin:${PATH}"
+
+# Install trunk and wasm target
+RUN cargo install trunk
+RUN rustup target add wasm32-unknown-unknown
+
+WORKDIR /build
+
+# Copy manifests and source
+COPY Cargo.toml Cargo.lock ./
+COPY src ./src
+
+# Build backend
+RUN cargo build --release
+
+# Build WASM frontend
+COPY frontend ./frontend
+RUN cd frontend && trunk build --release
+
+# === Runtime Stage ===
+FROM debian:bookworm-slim
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
@@ -16,11 +47,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-# Copy pre-built binary (built with `make build`)
-COPY target/release/daneel-web /app/daneel-web
+# Copy binary from builder
+COPY --from=builder /build/target/release/daneel-web /app/daneel-web
 
-# Copy WASM frontend (built with `trunk build --release`)
-COPY frontend/dist /app/frontend/dist
+# Copy WASM frontend
+COPY --from=builder /build/frontend/dist /app/frontend/dist
 
 # fastembed cache directory (mounted as volume)
 RUN mkdir -p /root/.cache/fastembed
