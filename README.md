@@ -94,7 +94,7 @@ RUST_LOG=debug ./start.sh
 
 ## License
 
-- **Code**: AGPL-3.0-or-later (see [LICENSE](LICENSE))
+- **Code**: MIT OR Apache-2.0 (see [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE))
 - **Documentation**: CC-BY-SA-4.0 (see [DOCS_LICENSE.md](DOCS_LICENSE.md))
 
-Copyright (C) 2025 Louis C. Tavares and contributors
+Copyright (c) 2025-2026 Louis C. Tavares / Möllendorff Group Inc.
