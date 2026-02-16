@@ -5,6 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-02-16
+
+### Changed
+
+- **Relicense: AGPL-3.0 → MIT OR Apache-2.0** - Match daneel, Rust ecosystem standard.
+- **Community files** - Added .env.example, CONTRIBUTING.md, SECURITY.md.
+- **GitHub setup** - Topics (rust, leptos, wasm, webassembly, ai, real-time), Discussions enabled.
+- **Security fix** - bytes 1.11.0 → 1.11.1 (CVE integer overflow).
+
+---
+
 ## [0.2.1] - 2026-01-24
 
 ### Changed
