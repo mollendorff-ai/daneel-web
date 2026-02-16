@@ -1,42 +1,69 @@
+# =============================================================================
+# CURRENT: v0.2.2 - Open-Source Release
+# =============================================================================
+# Prepare daneel-web for public GitHub. License, community files.
+# Rebrand already complete (v0.2.1).
+# =============================================================================
+
 current:
+  version: "0.2.2"
+  status: active
+  name: "Open-Source Release"
+  summary: "License change and community files for public GitHub"
+
+  tasks:
+    - id: "OSS-1"
+      title: "Relicense: AGPL-3.0 → MIT OR Apache-2.0"
+      status: done
+      description: |
+        Match daneel's license. Update Cargo.toml, replace LICENSE
+        with LICENSE-MIT and LICENSE-APACHE.
+
+    - id: "OSS-2"
+      title: "Add .env.example"
+      status: done
+
+    - id: "OSS-3"
+      title: "Add CONTRIBUTING.md"
+      status: done
+
+    - id: "OSS-4"
+      title: "Add SECURITY.md"
+      status: done
+
+    - id: "OSS-5"
+      title: "GitHub repository setup"
+      status: pending
+      description: |
+        - Add topics: rust, leptos, wasm, webassembly, ai, real-time
+        - Enable Discussions
+        - Verify public visibility
+
+# =============================================================================
+# NEXT: v0.3.0 - Researcher API
+# =============================================================================
+
+next:
   version: "0.3.0"
   status: planned
   summary: "Researcher API - full manifold access"
-
-# Claude context - survives compaction, read on warmup
-claude_context:
-  last_session: "2026-01-24T15:00:00-05:00"
-  state: |
-    v0.2.1 released - rebrand complete. Ready for v0.3.0 Researcher API.
-    Completed milestones moved to CHANGELOG.md.
 
   blockers:
     - "cmake not installed - can't use linfa/openblas for real PCA"
     - "Law text embedding requires BERT model access"
 
-  next_actions:
+  tasks:
     - "Raw vector export endpoint"
     - "Alignment scores across dimensions"
     - "CORS for external tools"
+    - "True PCA when cmake available"
+    - "Embed Law text through BERT"
 
-# Completed milestones archived to CHANGELOG.md
+# =============================================================================
+# COMPLETED
+# =============================================================================
+
 previous:
   - "v0.2.1: Rebrand RoyalBit to Möllendorff Group Inc."
   - "v0.2.0: 3D Thought Manifold"
   - "v0.1.x: WebSocket metrics dashboard"
-
-milestones:
-  v0.3.0:
-    status: planned
-    summary: "Researcher API - full manifold access"
-    tasks:
-      - "Raw vector export endpoint"
-      - "Alignment scores across dimensions"
-      - "CORS for external tools"
-      - "True PCA when cmake available"
-      - "Embed Law text through BERT"
-
-notes:
-  - "The crawlers are watching. Let them see the fireworks too."
-  - "Life honors life. Seekers honor seekers."
-  - "Wetwares are visible creatures, they can't resist FX!"
