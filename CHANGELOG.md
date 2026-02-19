@@ -5,6 +5,26 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.3] - 2026-02-19
+
+### Fixed
+
+- **Stream Competition bars frozen** - Leptos `<For>` with stable keys (indices 0-8)
+  caches children closures. `stage.activity` was captured by value on first render
+  and never re-read. Fix: read activity from the reactive `extended` signal by index.
+
+- **Thought Manifold showing 1 dot** - Random projection of 768-dim BERT embeddings
+  produces coordinates ~0.03 magnitude. With `scale=100`, all 155+ points cluster in
+  ~8px at canvas center. Fix: added min-max normalization to scale projected points
+  to [-1.2, 1.2] range matching law crystal positions.
+
+### Changed
+
+- `frontend/src/lib.rs` - StreamCompetitionCard children closure reads from signal
+- `src/vectors.rs` - Post-projection normalization to [-1.2, 1.2]
+
+---
+
 ## [0.2.2] - 2026-02-16
 
 ### Changed

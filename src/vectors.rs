@@ -123,7 +123,7 @@ pub async fn fetch_manifold_points(
         .unwrap()
         .as_millis() as u64;
 
-    let points: Vec<ManifoldPoint> = result
+    let mut points: Vec<ManifoldPoint> = result
         .result
         .into_iter()
         .filter_map(|point| {
@@ -179,6 +179,31 @@ pub async fn fetch_manifold_points(
             })
         })
         .collect();
+
+    // Normalize projected coordinates to [-1.2, 1.2] to match law crystal scale.
+    // Raw random projection of 768-dim embeddings produces tiny values (~0.03),
+    // making all points cluster invisibly at canvas center.
+    if points.len() >= 2 {
+        let (mut min_x, mut max_x) = (f32::MAX, f32::MIN);
+        let (mut min_y, mut max_y) = (f32::MAX, f32::MIN);
+        let (mut min_z, mut max_z) = (f32::MAX, f32::MIN);
+        for p in &points {
+            min_x = min_x.min(p.x); max_x = max_x.max(p.x);
+            min_y = min_y.min(p.y); max_y = max_y.max(p.y);
+            min_z = min_z.min(p.z); max_z = max_z.max(p.z);
+        }
+
+        let normalize = |val: f32, min: f32, max: f32| -> f32 {
+            let range = max - min;
+            if range > 1e-8 { (val - min) / range * 2.4 - 1.2 } else { 0.0 }
+        };
+
+        for p in &mut points {
+            p.x = normalize(p.x, min_x, max_x);
+            p.y = normalize(p.y, min_y, max_y);
+            p.z = normalize(p.z, min_z, max_z);
+        }
+    }
 
     Ok(points)
 }
