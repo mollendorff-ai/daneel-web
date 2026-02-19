@@ -411,21 +411,27 @@ fn StreamCompetitionCard(extended: Signal<Option<ExtendedMetrics>>) -> impl Into
                     each=move || stages().into_iter().enumerate()
                     key=|(i, _)| *i
                     children=move |(idx, stage)| {
+                        let stage_name = stage.name.clone();
                         let is_dominant = move || {
                             extended.get()
                                 .map(|e| e.stream_competition.dominant_stream == idx)
                                 .unwrap_or(false)
                         };
                         let bar_class = move || if is_dominant() { "stream-bar dominant" } else { "stream-bar" };
-                        let activity_pct = move || (stage.activity * 100.0) as u32;
+                        // Read activity from signal (not captured stage) so it updates reactively
+                        let activity_pct = move || {
+                            extended.get()
+                                .and_then(|e| e.stream_competition.stages.get(idx).map(|s| (s.activity * 100.0) as u32))
+                                .unwrap_or(0)
+                        };
 
                         view! {
                             <div class="stream-row">
-                                <span class="stream-name">{stage.name.clone()}</span>
+                                <span class="stream-name">{stage_name}</span>
                                 <div class="stream-bar-container">
                                     <div class=bar_class style:width=move || format!("{}%", activity_pct())></div>
                                 </div>
-                                <span class="stream-value">{move || format!("{:.0}%", stage.activity * 100.0)}</span>
+                                <span class="stream-value">{move || format!("{:.0}%", activity_pct())}</span>
                             </div>
                         }
                     }
