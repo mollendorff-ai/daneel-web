@@ -16,24 +16,36 @@
 
 ```
 daneel-web/
-├── src/main.rs      # Axum backend
+├── src/main.rs      # Axum backend (metrics, WebSocket, proxy)
+├── src/vectors.rs   # 768-dim → 3D random projection
 ├── frontend/        # Leptos WASM frontend
 │   ├── src/lib.rs
 │   ├── index.html
 │   └── style.css
-├── start.sh         # Build & run
-└── stop.sh
+└── Dockerfile       # Multi-stage build (arm64 + x64)
 
 Browser ──HTTP──> daneel-web ──> frontend/dist/ (WASM)
-        └─WS───> /ws endpoint ──> Redis + Qdrant
+        └─WS───> /ws endpoint ──> Redis + Qdrant + daneel core
 ```
 
 ## Quick Start
 
 ```bash
-./start.sh           # Builds frontend + backend, starts server
+# Build frontend (requires trunk: cargo install trunk)
+cd frontend && trunk build --release && cd ..
+
+# Build and run backend
+cargo build --release
+./target/release/daneel-web
 open http://localhost:3000
-./stop.sh            # Stop server
+```
+
+Requires daneel core running on port 3030, Redis on 6379, Qdrant on 6334.
+
+Or via Docker (from parent repo):
+
+```bash
+docker compose up --build    # builds both daneel and daneel-web
 ```
 
 ## API Endpoints
@@ -41,8 +53,8 @@ open http://localhost:3000
 | Endpoint | Method | Description |
 |----------|--------|-------------|
 | `/` | GET | Leptos WASM frontend |
-| `/health` | GET | Health check (JSON) |
-| `/metrics` | GET | Current metrics snapshot (JSON) |
+| `/extended` | GET | Full metrics (streams, entropy, fractality, clustering) |
+| `/vectors` | GET | 3D-projected thought vectors for manifold |
 | `/ws` | WS | Real-time metrics push (200ms) |
 
 ## Environment Variables
@@ -51,7 +63,9 @@ open http://localhost:3000
 |----------|---------|-------------|
 | `REDIS_URL` | `redis://localhost:6379` | Redis connection |
 | `QDRANT_URL` | `http://localhost:6334` | Qdrant connection |
+| `DANEEL_CORE_URL` | `http://localhost:3030` | daneel core API |
 | `PORT` | `3000` | Server port |
+| `HOST` | `0.0.0.0` | Bind address |
 | `FRONTEND_DIR` | `./frontend/dist` | Leptos WASM assets |
 | `RUST_LOG` | `daneel_web=info` | Log level |
 
@@ -84,7 +98,7 @@ cd frontend && trunk build --release
 cargo build --release
 
 # Run with debug logging
-RUST_LOG=debug ./start.sh
+RUST_LOG=debug cargo run --release
 ```
 
 ## Part of the DANEEL Family
