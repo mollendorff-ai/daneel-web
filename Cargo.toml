@@ -1,6 +1,6 @@
 [package]
 name = "daneel-web"
-version = "0.1.4"
+version = "0.2.3"
 edition = "2021"
 description = "Web dashboard for observing Timmy's cognitive processes"
 authors = ["Louis C. Tavares <rex@mollendorff.ai>"]
