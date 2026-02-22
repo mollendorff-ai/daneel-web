@@ -111,4 +111,4 @@ RUST_LOG=debug cargo run --release
 - **Code**: MIT OR Apache-2.0 (see [LICENSE-MIT](LICENSE-MIT) and [LICENSE-APACHE](LICENSE-APACHE))
 - **Documentation**: CC-BY-SA-4.0 (see [DOCS_LICENSE.md](DOCS_LICENSE.md))
 
-Copyright (c) 2025-2026 Louis C. Tavares / Möllendorff Group Inc.
+Copyright (c) 2025-2026 Louis C. Tavares / Möllendorff AI
