@@ -40,7 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Rebranding: RoyalBit to Möllendorff Group Inc.** - Complete organizational rebrand.
+- **Rebranding: RoyalBit to Möllendorff AI** - Complete organizational rebrand.
   - **Why rebrand?** The "RoyalBit" name (company founded 2006) was hijacked by unrelated cryptocurrency scammers:
     - UK FCA issued official warning (Oct 2024) about "Royalbit Miners" - unauthorized firm
     - Multiple fraudulent domains: royalbit.ltd (trust score 38/100), royalbit.top, royal-bit.club
@@ -136,4 +136,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-*Documentation licensed under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) - Copyright (c) 2025-2026 Möllendorff Group Inc.*
+*Documentation licensed under [CC BY-NC-ND 4.0](https://creativecommons.org/licenses/by-nc-nd/4.0/) - Copyright (c) 2025-2026 Möllendorff AI*
