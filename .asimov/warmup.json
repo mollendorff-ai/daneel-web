@@ -1,6 +1,6 @@
 {
   "protocol": "warmup",
-  "description": "Möllendorff Group Inc. Asimov - Session warmup entry point",
+  "description": "Möllendorff AI Asimov - Session warmup entry point",
   "on_start": [
     "load_protocols",
     "load_project",

@@ -25,6 +25,6 @@ current:
 previous:
   - "v0.2.3: Observatory bug fixes (stream bars, manifold normalization)"
   - "v0.2.2: Open-Source Release (MIT/Apache-2.0, community files, GitHub setup)"
-  - "v0.2.1: Rebrand RoyalBit to Möllendorff Group Inc."
+  - "v0.2.1: Rebrand RoyalBit to Möllendorff AI"
   - "v0.2.0: 3D Thought Manifold"
   - "v0.1.x: WebSocket metrics dashboard"
