@@ -188,14 +188,21 @@ pub async fn fetch_manifold_points(
         let (mut min_y, mut max_y) = (f32::MAX, f32::MIN);
         let (mut min_z, mut max_z) = (f32::MAX, f32::MIN);
         for p in &points {
-            min_x = min_x.min(p.x); max_x = max_x.max(p.x);
-            min_y = min_y.min(p.y); max_y = max_y.max(p.y);
-            min_z = min_z.min(p.z); max_z = max_z.max(p.z);
+            min_x = min_x.min(p.x);
+            max_x = max_x.max(p.x);
+            min_y = min_y.min(p.y);
+            max_y = max_y.max(p.y);
+            min_z = min_z.min(p.z);
+            max_z = max_z.max(p.z);
         }
 
         let normalize = |val: f32, min: f32, max: f32| -> f32 {
             let range = max - min;
-            if range > 1e-8 { (val - min) / range * 2.4 - 1.2 } else { 0.0 }
+            if range > 1e-8 {
+                (val - min) / range * 2.4 - 1.2
+            } else {
+                0.0
+            }
         };
 
         for p in &mut points {

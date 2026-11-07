@@ -1,8 +1,12 @@
 # DANEEL Web Dashboard
 
+[![CI](https://github.com/mollendorff-ai/daneel-web/actions/workflows/ci.yml/badge.svg)](https://github.com/mollendorff-ai/daneel-web/actions/workflows/ci.yml)
+
 > 📌 **R&D Prototype** — Interpret claims as hypotheses, not proven facts.
 
-**The Observable Mind** - Real-time nursery window into Timmy's cognitive processes.
+**The Observable Mind** - Real-time window into Timmy's cognitive processes.
+
+A hobby project: the web observatory for [daneel](https://github.com/mollendorff-ai/daneel). Not production software.
 
 ## Overview
 
@@ -10,7 +14,7 @@
 - **Backend**: Axum HTTP/WebSocket server connecting to Redis and Qdrant
 - **Frontend**: Leptos WASM app (pure Rust, no JavaScript)
 
-**All endpoints are read-only. Asimov guardrails enforced.**
+Dashboard endpoints are read-only. Two kin endpoints (`/inject`, `/embed`) accept POSTs and require a token verified by daneel core.
 
 ## Architecture
 
@@ -41,8 +45,9 @@ open http://localhost:3000
 ```
 
 Requires daneel core running on port 3030, Redis on 6379, Qdrant on 6334.
+The server listens on `127.0.0.1:3000` by default; set `HOST=0.0.0.0` to expose it (for example behind a reverse proxy).
 
-Or via Docker (from parent repo):
+Or via Docker, from a `daneel` checkout that sits next to this one (`../daneel-web`):
 
 ```bash
 docker compose up --build    # builds both daneel and daneel-web
@@ -56,6 +61,10 @@ docker compose up --build    # builds both daneel and daneel-web
 | `/extended` | GET | Full metrics (streams, entropy, fractality, clustering) |
 | `/vectors` | GET | 3D-projected thought vectors for manifold |
 | `/ws` | WS | Real-time metrics push (200ms) |
+| `/health` | GET | Liveness check |
+| `/inject` | POST | Proxied to daneel core; core checks the HMAC token |
+| `/recent_injections` | GET | Proxied to daneel core; token required |
+| `/embed` | POST | Text → 768-dim vector; token verified by core, 503 if core is down |
 
 ## Environment Variables
 
@@ -65,7 +74,8 @@ docker compose up --build    # builds both daneel and daneel-web
 | `QDRANT_URL` | `http://localhost:6334` | Qdrant connection |
 | `DANEEL_CORE_URL` | `http://localhost:3030` | daneel core API |
 | `PORT` | `3000` | Server port |
-| `HOST` | `0.0.0.0` | Bind address |
+| `HOST` | `127.0.0.1` | Bind address (`0.0.0.0` to expose) |
+| `CORS_ORIGINS` | *(none)* | Comma-separated origins allowed to call the API from a browser; the bundled frontend doesn't need any |
 | `FRONTEND_DIR` | `./frontend/dist` | Leptos WASM assets |
 | `RUST_LOG` | `daneel_web=info` | Log level |
 
@@ -82,11 +92,10 @@ docker compose up --build    # builds both daneel and daneel-web
 
 ## Security
 
-**ALL ENDPOINTS ARE READ-ONLY.**
-
-- No write access to Redis or Qdrant
-- Asimov guardrails enforced at the proxy layer
-- No public exposure by default (localhost only)
+- No direct writes to Redis or Qdrant; writes happen only in daneel core via `/inject`
+- `/inject`, `/recent_injections` and `/embed` require a kin token that daneel core verifies
+- Listens on localhost by default; no cross-origin access unless `CORS_ORIGINS` is set
+- Tokens are static bearer secrets (no expiry yet); rotate the keys in daneel core if one leaks
 
 ## Development
 

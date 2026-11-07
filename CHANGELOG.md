@@ -5,6 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-11-07
+
+### Security
+
+- **`/embed` now verifies the token with daneel core.** It previously accepted any
+  header starting with `Bearer GROK:` or `Bearer CLAUDE:`. Invalid tokens get 401;
+  if core is unreachable the request is refused with 503.
+- **Listens on `127.0.0.1` by default.** `HOST` was documented but ignored (the
+  server always bound `0.0.0.0`). Docker compose and the macOS launchd plist already
+  set `HOST=0.0.0.0`, so those deployments are unchanged.
+- **CORS is opt-in.** Replaced `CorsLayer::permissive()` with `CORS_ORIGINS`
+  (none by default); the bundled frontend is same-origin and needs none.
+
+### Changed
+
+- README and module docs no longer claim every endpoint is read-only; the API table
+  lists `/inject`, `/recent_injections`, `/embed` and `/health`.
+- `cargo fmt` applied to backend and frontend.
+- CI workflow: fmt, clippy and tests on every push and PR.
+
+---
+
 ## [0.2.3] - 2026-02-19
 
 ### Fixed
