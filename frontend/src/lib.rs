@@ -307,7 +307,13 @@ fn ActorsCard(metrics: Signal<DashboardMetrics>) -> impl IntoView {
 
 #[component]
 fn ActorBadge(actor: Signal<ActorStatus>) -> impl IntoView {
-    let class = move || if actor.get().alive { "actor" } else { "actor dead" };
+    let class = move || {
+        if actor.get().alive {
+            "actor"
+        } else {
+            "actor dead"
+        }
+    };
 
     view! {
         <div class=class>
@@ -342,8 +348,20 @@ fn ThoughtStreamCard(metrics: Signal<DashboardMetrics>) -> impl IntoView {
 
 #[component]
 fn StatusIndicator(connected: Signal<bool>) -> impl IntoView {
-    let class = move || if connected.get() { "status" } else { "status error" };
-    let text = move || if connected.get() { "Connected" } else { "Disconnected" };
+    let class = move || {
+        if connected.get() {
+            "status"
+        } else {
+            "status error"
+        }
+    };
+    let text = move || {
+        if connected.get() {
+            "Connected"
+        } else {
+            "Disconnected"
+        }
+    };
 
     view! {
         <span class=class>{text}</span>
@@ -919,7 +937,11 @@ fn get_ws_url() -> String {
     let window = web_sys::window().expect("no window");
     let location = window.location();
     let host = location.host().unwrap_or_else(|_| "localhost:3000".into());
-    let protocol = if location.protocol().unwrap_or_default() == "https:" { "wss" } else { "ws" };
+    let protocol = if location.protocol().unwrap_or_default() == "https:" {
+        "wss"
+    } else {
+        "ws"
+    };
     format!("{}://{}/ws", protocol, host)
 }
 

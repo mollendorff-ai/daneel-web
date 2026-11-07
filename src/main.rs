@@ -1,7 +1,10 @@
 //! DANEEL Web Dashboard - The Observable Mind
 //!
-//! Read-only, real-time nursery window into Timmy's cognitive processes.
-//! ALL ENDPOINTS ARE READ-ONLY. Asimov guardrails enforced.
+//! Real-time window into Timmy's cognitive processes.
+//!
+//! Dashboard endpoints are read-only. Two kin endpoints are not:
+//! `POST /inject` is proxied to daneel core (which checks the HMAC token),
+//! and `POST /embed` computes an embedding after core has verified the token.
 //!
 //! Observatory Mode: Full TUI-equivalent metrics via /extended_metrics
 //! Embed Endpoint: Kin can convert text to vectors for STIM-D injection
@@ -37,7 +40,11 @@ use once_cell::sync::Lazy;
 use serde::{Deserialize, Serialize};
 use std::{sync::Arc, time::Duration};
 use tokio::sync::RwLock;
-use tower_http::{cors::CorsLayer, services::ServeDir, trace::TraceLayer};
+use tower_http::{
+    cors::{AllowOrigin, CorsLayer},
+    services::ServeDir,
+    trace::TraceLayer,
+};
 use tracing::{info, warn};
 
 // =============================================================================
@@ -479,53 +486,84 @@ async fn proxy_to_core(
 // Embed Endpoint (ADR-045: Kin Embedding Helper)
 // =============================================================================
 
+/// Outcome of asking daneel core whether a kin token is valid
+#[derive(Debug, PartialEq, Eq)]
+enum TokenCheck {
+    Valid,
+    Invalid,
+    CoreUnavailable,
+}
+
+/// Map daneel core's answer on a protected endpoint to a token verdict.
+///
+/// Core does the real HMAC check (`require_auth`); daneel-web holds no keys.
+/// 2xx means the token passed, 401/403 means it did not, anything else
+/// means core could not answer and we must not guess.
+fn classify_core_auth(status: Option<u16>) -> TokenCheck {
+    match status {
+        Some(200..=299) => TokenCheck::Valid,
+        Some(401 | 403) => TokenCheck::Invalid,
+        _ => TokenCheck::CoreUnavailable,
+    }
+}
+
+/// Ask daneel core to verify a bearer token against its HMAC keys.
+///
+/// Uses `GET /recent_injections`, the core's cheapest authenticated,
+/// read-only endpoint.
+async fn verify_token_with_core(state: &AppState, auth: &str) -> TokenCheck {
+    let url = format!("{}/recent_injections", state.daneel_core_url);
+    let status = state
+        .http_client
+        .get(&url)
+        .header("authorization", auth)
+        .send()
+        .await
+        .ok()
+        .map(|r| r.status().as_u16());
+    classify_core_auth(status)
+}
+
 /// POST /embed - Convert text to 768-dim semantic vector
-/// Protected by same auth as /inject (proxied to daneel core for auth check)
+///
+/// Requires the same kin token as `/inject`. The token is verified by
+/// daneel core; if core cannot be reached the request is refused (503).
 async fn embed_handler(
     State(state): State<Arc<AppState>>,
     request: Request<Body>,
 ) -> Result<Json<EmbedResponse>, (StatusCode, Json<EmbedError>)> {
-    // Extract auth header for validation
-    let headers = request.headers().clone();
-    let auth_header = headers
+    let auth = request
+        .headers()
         .get("authorization")
         .and_then(|h| h.to_str().ok())
-        .map(|s| s.to_string());
+        .map(str::to_string)
+        .ok_or_else(|| {
+            (
+                StatusCode::UNAUTHORIZED,
+                Json(EmbedError {
+                    error: "Missing Authorization header".into(),
+                }),
+            )
+        })?;
 
-    // Validate auth by making a lightweight call to daneel core
-    // We use the /health endpoint with auth to validate the token
-    if let Some(auth) = &auth_header {
-        let health_url = format!("{}/health", state.daneel_core_url);
-        let resp = state
-            .http_client
-            .get(&health_url)
-            .header("authorization", auth.as_str())
-            .send()
-            .await;
-
-        // If we can't reach core or auth fails, check if it's a valid kin token format
-        // Token format: KEY_ID:SIGNATURE (e.g., GROK:abc123...)
-        if !auth.starts_with("Bearer GROK:") && !auth.starts_with("Bearer CLAUDE:") {
+    match verify_token_with_core(&state, &auth).await {
+        TokenCheck::Valid => {}
+        TokenCheck::Invalid => {
             return Err((
                 StatusCode::UNAUTHORIZED,
                 Json(EmbedError {
-                    error:
-                        "Invalid or missing authentication. Use Bearer GROK:<sig> or CLAUDE:<sig>"
-                            .into(),
+                    error: "Invalid token. Use Bearer GROK:<sig> or CLAUDE:<sig>".into(),
                 }),
             ));
         }
-
-        // For now, accept valid-looking tokens (actual HMAC validation happens at /inject)
-        // This is a helper endpoint - the real auth gate is when they call /inject
-        let _ = resp; // Suppress unused warning
-    } else {
-        return Err((
-            StatusCode::UNAUTHORIZED,
-            Json(EmbedError {
-                error: "Missing Authorization header".into(),
-            }),
-        ));
+        TokenCheck::CoreUnavailable => {
+            return Err((
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(EmbedError {
+                    error: "Cannot verify token: daneel core is unavailable".into(),
+                }),
+            ));
+        }
     }
 
     // Parse request body
@@ -873,6 +911,29 @@ async fn get_identity_from_qdrant(
 // Main
 // =============================================================================
 
+/// Build the CORS policy from `CORS_ORIGINS` (comma-separated origins).
+///
+/// The bundled frontend is served from the same origin and needs no CORS,
+/// so the default allows no cross-origin requests. Set e.g.
+/// `CORS_ORIGINS=https://timmy.mollendorff.ai` only if another site must call
+/// this API from a browser.
+fn cors_layer(origins: Option<&str>) -> CorsLayer {
+    let allowed: Vec<axum::http::HeaderValue> = origins
+        .unwrap_or("")
+        .split(',')
+        .map(str::trim)
+        .filter(|o| !o.is_empty())
+        .filter_map(|o| o.parse().ok())
+        .collect();
+    CorsLayer::new()
+        .allow_origin(AllowOrigin::list(allowed))
+        .allow_methods([axum::http::Method::GET, axum::http::Method::POST])
+        .allow_headers([
+            axum::http::header::AUTHORIZATION,
+            axum::http::header::CONTENT_TYPE,
+        ])
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt()
@@ -912,13 +973,15 @@ async fn main() {
         .route("/recent_injections", get(proxy_recent_injections))
         .route("/embed", post(embed_handler))
         .fallback_service(ServeDir::new(&frontend_dir))
-        .layer(CorsLayer::permissive())
+        .layer(cors_layer(std::env::var("CORS_ORIGINS").ok().as_deref()))
         .layer(TraceLayer::new_for_http())
         .with_state(state);
 
     info!("Serving frontend from: {}", frontend_dir);
 
-    let listener = tokio::net::TcpListener::bind(("0.0.0.0", port))
+    let host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".into());
+    info!("Listening on {}:{}", host, port);
+    let listener = tokio::net::TcpListener::bind((host.as_str(), port))
         .await
         .unwrap();
     axum::serve(listener, app).await.unwrap();
@@ -932,6 +995,24 @@ mod tests {
     fn test_default_metrics() {
         let m = AppState::default_metrics();
         assert_eq!(m.identity.name, "Timmy");
+    }
+
+    #[test]
+    fn core_auth_2xx_is_valid() {
+        assert_eq!(classify_core_auth(Some(200)), TokenCheck::Valid);
+    }
+
+    #[test]
+    fn core_auth_401_403_is_invalid() {
+        assert_eq!(classify_core_auth(Some(401)), TokenCheck::Invalid);
+        assert_eq!(classify_core_auth(Some(403)), TokenCheck::Invalid);
+    }
+
+    #[test]
+    fn core_auth_unreachable_or_error_is_unavailable() {
+        assert_eq!(classify_core_auth(None), TokenCheck::CoreUnavailable);
+        assert_eq!(classify_core_auth(Some(500)), TokenCheck::CoreUnavailable);
+        assert_eq!(classify_core_auth(Some(503)), TokenCheck::CoreUnavailable);
     }
 
     #[test]
