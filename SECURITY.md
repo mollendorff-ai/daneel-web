@@ -15,7 +15,7 @@ daneel-web is an experimental research project, not production software. It is t
 
 If you discover a security vulnerability, please report it privately:
 
-**Email:** louis@mollendorff.ai
+**Email:** security@mollendorff.ai
 
 **Subject line:** `[SECURITY] daneel-web - <brief description>`
 
